@@ -52,14 +52,18 @@
 
    findRouteTracts : function(req,res){
      if(true){
+       var geoids;
        var rid = req.param('rid');
        if(rid.startsWith('[') && rid.endsWith(']')){
          rid = JSON.parse(rid);
        }
+       if(req.body && req.body.forEach){
+         geoids = req.body;
+       }
        console.log(rid.findOne);
        var agency = req.param('agency');
        Agencies.findOne(agency).exec(function(err,agency){
-         queryRouteTract(agency.tablename,rid,Tract,req,res);
+         queryRouteTract(agency.tablename,rid,geoids,Tract,req,res);
        });
      }else{
        res.send({err:'UNAUTHORIZED ACCESS'},503);
@@ -68,7 +72,7 @@
 
  };
 
- function queryRouteTract(agency,rid,model,req,res){
+ function queryRouteTract(agency,rid,geoids,model,req,res){
    console.log('queryingRouteTract');
    console.time('queryingRouteTract');
    model.query(helper.query.routeCountyIdQuery(agency,rid),{},function(err,data){
@@ -81,7 +85,7 @@
          return row.geoid;
        });
        console.time('countyTracts');
-       model.query(helper.query.countyTractQuery(countyIds),{},function(err,data){
+       model.query(helper.query.countyTractQuery(countyIds,geoids),{},function(err,data){
          if(err){
            console.log(err);
            res.send({err:'Error Retrieving Tract Info'},500);

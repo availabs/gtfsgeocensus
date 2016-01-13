@@ -15,17 +15,17 @@ module.exports =  {
 
   	});
   	var topology = topojson.topology({objs:geocoll},{"property-transform":function(d){return d.properties;}});
-  	var json = {type:'FeatureCollection',features:[],bbox:topology.bbox,transform:topology.transform};
+  	// var json = {type:'FeatureCollection',features:[],bbox:topology.bbox,transform:topology.transform};
 
-  	if(topology.objects.objs.geometries.forEach){
-  		topology.objects.objs.geometries.forEach(function(d){
-  			var f = toTopo(topology,d);
-  			json.features.push(f);
-  		});
-  	}else{
-  		json.features.push(toTopo(topology,topology.objects.states.objs));
-  	}
-  	return json;
+  	// if(topology.objects.objs.geometries.forEach){
+  	// 	topology.objects.objs.geometries.forEach(function(d){
+  	// 		var f = toTopo(topology,d);
+  	// 		json.features.push(f);
+  	// 	});
+  	// }else{
+  	// 	json.features.push(toTopo(topology,topology.objects.states.objs));
+  	// }
+  	return topology;
   },
   query : {
     stateQuery:function(id){
@@ -105,7 +105,7 @@ module.exports =  {
       console.log(sql);
       return sql;
     },
-    countyTractQuery : function(countyids){
+    countyTractQuery : function(countyids,geoids){
       var sql = '';
       var states = {};
       countyids.forEach(function(id){
@@ -113,9 +113,13 @@ module.exports =  {
         states[sid] = states[sid] || [];
         states[sid].push(id);
       });
+      var excludes = '';
+      if(geoids){
+        excludes = 'AND geoid NOT IN (\''+geoids.join("','")+'\')';
+      }
       var queryList = Object.keys(states).map(function(id){
         return 'SELECT geoid, name,aland,awater, ST_AsGeoJSON(the_geom) as geom FROM tl_2013_'+id+'_tract ' +
-               'WHERE statefp || countyfp IN  (\''+states[id].join("','")+'\')';
+               'WHERE statefp || countyfp IN  (\''+states[id].join("','")+'\') ' + excludes;
       });
       sql = queryList.join(' UNION ');
       console.log(sql);

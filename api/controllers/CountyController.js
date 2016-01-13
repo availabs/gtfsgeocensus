@@ -44,8 +44,33 @@
 				queryCountry('',County,req,res);
 			}
 		},
+		findRouteCounties : function(req,res){
+			if(true){
+				var agency=req.param('agency');
+				Agencies.findOne(agency).exec(function(err,agency){
+					var route = req.param('rid');
+					queryRouteCounty(agency.tablename,route,County,req,res);
+				});
+			}else{
+				res.send({err:'UNAUTHORIZED ACCESS'},503);
+			}
+		},
 
 	};
+
+	function queryRouteCounty(agency,rid,model,req,res){
+		console.log('Querying Route');
+		console.time('Query Route Counties');
+		model.query(helper.query.routeCountyQuery(agency,rid),{},function(err,data){
+			if(err){
+				console.log(err);
+				return res.send({err:'Error Retrieving Route County Info'});
+			}
+			console.timeEnd('Query Route Counties');
+			var json = helper.convertToTopo(data.rows);
+			res.send(json);
+		});
+	}
 
 	function queryCounty(id,model,req,res){
 		console.log('made it');

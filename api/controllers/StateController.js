@@ -28,13 +28,16 @@ module.exports = {
 };
 
 function queryState(id,model,req,res){
-	console.log('made it');
+	console.time('query');
 	model.query(helper.query.stateQuery(id),{},function(err,data){
+		console.timeEnd('query');
 		if(err){
 			console.log(err);
 			res.send({err:'Error Retrieving State Info'},500);
 		}else{
+			console.log('made it')
 			var json = helper.convertToTopo(data.rows);
+			// var json = data.rows[0].text;
 			res.send(json);
 		}
 	});

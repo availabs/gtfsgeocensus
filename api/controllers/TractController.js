@@ -50,7 +50,50 @@
 		 }
 	 },
 
+   findRouteTracts : function(req,res){
+     if(true){
+       var rid = req.param('rid');
+       if(rid.startsWith('[') && rid.endsWith(']')){
+         rid = JSON.parse(rid);
+       }
+       console.log(rid.findOne);
+       var agency = req.param('agency');
+       Agencies.findOne(agency).exec(function(err,agency){
+         queryRouteTract(agency.tablename,rid,Tract,req,res);
+       });
+     }else{
+       res.send({err:'UNAUTHORIZED ACCESS'},503);
+     }
+   },
+
  };
+
+ function queryRouteTract(agency,rid,model,req,res){
+   console.log('queryingRouteTract');
+   console.time('queryingRouteTract');
+   model.query(helper.query.routeCountyIdQuery(agency,rid),{},function(err,data){
+     if(err){
+       console.log(err);
+       res.send({err:'Error Retrieving Tract Info'},500);
+     }else{
+       console.timeEnd('queryingRouteTract');
+       var countyIds = data.rows.map(function(row){
+         return row.geoid;
+       });
+       console.time('countyTracts');
+       model.query(helper.query.countyTractQuery(countyIds),{},function(err,data){
+         if(err){
+           console.log(err);
+           res.send({err:'Error Retrieving Tract Info'},500);
+         }else{
+          console.timeEnd('countyTracts');
+          var json = helper.convertToTopo(data.rows);
+          res.send(json);
+         }
+       });
+     }
+   });
+ }
 
  function queryTract(id,model,req,res){
 	 console.log('made it');

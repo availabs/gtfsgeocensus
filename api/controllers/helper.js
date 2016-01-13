@@ -6,7 +6,11 @@ module.exports =  {
   	data.forEach(function(geo){
   		var feat = {};
   		feat.type="Feature";feat.geometry=JSON.parse(geo.geom);
-  		feat.properties={region:geo.region,statfp:geo.statefp,stusps:geo.stusps,name:geo.name,aland:geo.aland};
+  		feat.properties={};
+      Object.keys(geo).forEach(function(d){
+        if(d !== 'geom')
+          feat.properties[d] = feat.properties[d] || geo[d];
+      });
   		geocoll.features.push(feat);
 
   	});
@@ -33,7 +37,8 @@ module.exports =  {
     		where = "WHERE geoid='"+id+"'";
     	}
     	var sql = 'SELECT ST_AsGeoJSON(the_geom) as geom,region,statefp,stusps,name,aland FROM tl_2013_us_state '+where;
-    	console.log(sql);
+      // var sql = "SELECT getTopoJSONS('NY') as text;"; sql side json currently 4x slower
+      console.log(sql);
     	return sql;
     },
     countyQuery : function(id){
@@ -47,7 +52,7 @@ module.exports =  {
   			}
   		}
   		var sql = 'SELECT ST_AsGeoJSON(the_geom) as geom,statefp,countyfp,namelsad,aland FROM tl_2013_us_county '+where;
-  		console.log(sql);
+      console.log(sql);
   		return sql;
   	},
     tractQuery : function(id){
@@ -67,7 +72,55 @@ module.exports =  {
    	 var sql = 'SELECT ST_AsGeoJSON(the_geom) as geom,statefp,tractce,namelsad,aland FROM tl_2013_'+statefp+'_tract '+where;
    	 console.log(sql);
    	 return sql;
-   },
+    },
+    routeCountyQuery : function(agency,rid){
+      var sql = "WITH " +
+                "geo AS( "+
+                "SELECT geom FROM \""+agency+"\".routes where route_id='"+rid+"' "+
+                ") "+
+                "SELECT ST_AsGeoJSON(the_geom) as geom, geoid,name,aland,awater "+
+                "from tl_2013_us_county as ct,geo "+
+                "WHERE ST_INTERSECTS(ct.the_geom,ST_setSRID(geo.geom,4326))";
+      console.log(sql);
+      return sql;
+    },
+    routeCountyIdQuery : function(agency,rid){
+      var where = '';
+      if(!rid.forEach){
+        where = "WHERE R.route_short_name='"+rid+"'";
+      }else{
+        where = "WHERE R.route_short_name in ('"+rid.join("','")+"')";
+      }
+      var sql = "WITH " +
+                "geo AS( SELECT S.geom FROM \""+agency+"\".routes as R " +
+                      	"JOIN \""+agency+"\".trips as T ON T.route_id=R.route_id "+
+                      	"JOIN \""+agency+"\".stop_times as ST ON ST.trip_id=T.trip_id "+
+                      	"JOIN \""+agency+"\".stops as S ON S.stop_id = ST.stop_id "+
+                      	where+ ' '+
+	                       "GROUP BY S.stop_id"+
+                ") "+
+                "SELECT distinct geoid "+
+                "from tl_2013_us_county as ct,geo "+
+                "WHERE ST_INTERSECTS(ct.the_geom,ST_setSRID(geo.geom,4326))";
+      console.log(sql);
+      return sql;
+    },
+    countyTractQuery : function(countyids){
+      var sql = '';
+      var states = {};
+      countyids.forEach(function(id){
+        var sid = id.substr(0,2);
+        states[sid] = states[sid] || [];
+        states[sid].push(id);
+      });
+      var queryList = Object.keys(states).map(function(id){
+        return 'SELECT geoid, name,aland,awater, ST_AsGeoJSON(the_geom) as geom FROM tl_2013_'+id+'_tract ' +
+               'WHERE statefp || countyfp IN  (\''+states[id].join("','")+'\')';
+      });
+      sql = queryList.join(' UNION ');
+      console.log(sql);
+      return sql;
+    },
   },
 };
 

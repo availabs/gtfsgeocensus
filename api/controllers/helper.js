@@ -73,14 +73,18 @@ module.exports =  {
    	 console.log(sql);
    	 return sql;
     },
-    routeCountyQuery : function(agency,rid){
+    routeCountyQuery : function(agency,rid,geoids){
+      var excludes = '';
+      if(geoids){
+        excludes = 'AND geoid NOT IN (\''+geoids.join("','")+'\')';
+      }
       var sql = "WITH " +
                 "geo AS( "+
-                "SELECT geom FROM \""+agency+"\".routes where route_id='"+rid+"' "+
+                "SELECT geom FROM \""+agency+"\".routes where route_short_name='"+rid+"' "+
                 ") "+
                 "SELECT ST_AsGeoJSON(the_geom) as geom, geoid,name,aland,awater "+
                 "from tl_2013_us_county as ct,geo "+
-                "WHERE ST_INTERSECTS(ct.the_geom,ST_setSRID(geo.geom,4326))";
+                "WHERE ST_INTERSECTS(ct.the_geom,ST_setSRID(geo.geom,4326)) "+excludes;
       console.log(sql);
       return sql;
     },

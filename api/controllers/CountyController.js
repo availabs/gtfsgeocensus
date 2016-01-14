@@ -47,9 +47,13 @@
 		findRouteCounties : function(req,res){
 			if(true){
 				var agency=req.param('agency');
+				var geoids;
+				if(req.body && req.body.forEach){
+					geoids = req.body;
+				}
 				Agencies.findOne(agency).exec(function(err,agency){
 					var route = req.param('rid');
-					queryRouteCounty(agency.tablename,route,County,req,res);
+					queryRouteCounty(agency.tablename,route,geoids,County,req,res);
 				});
 			}else{
 				res.send({err:'UNAUTHORIZED ACCESS'},503);
@@ -58,10 +62,10 @@
 
 	};
 
-	function queryRouteCounty(agency,rid,model,req,res){
+	function queryRouteCounty(agency,rid,geoids,model,req,res){
 		console.log('Querying Route');
 		console.time('Query Route Counties');
-		model.query(helper.query.routeCountyQuery(agency,rid),{},function(err,data){
+		model.query(helper.query.routeCountyQuery(agency,rid,geoids),{},function(err,data){
 			if(err){
 				console.log(err);
 				return res.send({err:'Error Retrieving Route County Info'});

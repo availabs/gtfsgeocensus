@@ -60,8 +60,9 @@
        if(req.body && req.body.forEach){
          geoids = req.body;
        }
-       console.log(rid.findOne);
+
        var agency = req.param('agency');
+       console.log('The GeoIds',geoids);
        Agencies.findOne(agency).exec(function(err,agency){
          queryRouteTract(agency.tablename,rid,geoids,Tract,req,res);
        });

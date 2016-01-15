@@ -71,7 +71,28 @@
      }
    },
 
+   getTracts : function(req,res){
+     if(true){
+       var tid = req.param('tid');
+       queryTracts(tid,Tract,req,res);
+     }else{
+       res.send({err:'UNAUTHORIZED ACCESS'},503);
+     }
+   },
  };
+
+ function queryTracts(tid,model,req,res){
+   console.log('querying tracts',tid);
+   model.query(helper.query.muliStateTractsQuery(tid),{},function(err,data){
+     if(err){
+       console.log(err);
+       res.send({err:'Error Retrieving Tract Info'},500);
+     }else{
+       var json = helper.convertToTopo(data.rows);
+       res.send(json);
+     }
+   });
+ }
 
  function queryRouteTract(agency,rid,geoids,model,req,res){
    console.log('queryingRouteTract');

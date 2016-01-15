@@ -59,8 +59,29 @@
 				res.send({err:'UNAUTHORIZED ACCESS'},503);
 			}
 		},
+		getCounties : function(req,res){
+			if(true){
+				var cid = req.param('cid');
+				queryCounties(cid,County,req,res);
+			}else{
+				res.send({err:'UNAUTHORIZED ACCESS'},503);
+			}
+		},
 
 	};
+
+	function queryCounties(cid,model,req,res){
+		console.log('querying tracts',cid);
+		model.query(helper.query.countiesQuery(cid),{},function(err,data){
+			if(err){
+				console.log(err);
+				res.send({err:'Error Retrieving Tract Info'},500);
+			}else{
+				var json = helper.convertToTopo(data.rows);
+				res.send(json);
+			}
+		});
+	}
 
 	function queryRouteCounty(agency,rid,geoids,model,req,res){
 		console.log('Querying Route');

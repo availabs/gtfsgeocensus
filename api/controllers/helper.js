@@ -129,6 +129,40 @@ module.exports =  {
       console.log(sql);
       return sql;
     },
+    muliStateTractsQuery : function(tid){
+      var where = '';
+      var states = {};
+      var findState = function(id){
+        var sid = id.substr(0,2);
+        states[sid] = states[sid] || [];
+        states[sid].push(id);
+      };
+      if(Array.isArray(tid)){
+        tid.forEach(function(id){
+          findState(id);
+        });
+        where = "WHERE geoid IN ('"+tid.join("','")+"')";
+      }else if(typeof tid.length !== 'undefined'){
+        findState(tid);
+        where = "WHERE geoid = '"+tid+"'";
+      }
+
+      var sql = Object.keys(states).map(function(id){
+        return 'SELECT geoid,name,aland,awater,ST_AsGeoJSON(the_geom) as geom FROM tl_2013_'+id+'_tract ' + where;
+      }).join(' UNION ');
+      return sql;
+    },
+    countiesQuery : function(cid){
+      var where = '';
+      if(Array.isArray(cid)){
+        where = "WHERE geoid in ('"+cid.join("','")+"')";
+      }else if(cid){
+        where = "WHERE geoid = '"+cid+"'";
+      }
+      var sql = 'SELECT ST_AsGeoJSON(the_geom) as geom,statefp,countyfp,namelsad,aland FROM tl_2013_us_county '+where;
+      console.log(sql);
+      return sql;
+    }
   },
 };
 

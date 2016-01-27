@@ -45,9 +45,10 @@ module.exports.routes = {
   '/state/:sid/tract': 'TractController.findStateTracts',
   '/county'     : 'CountyController.getCounties',
   '/tract'      : 'TractController.getTracts',
+  '/tract/county': 'TractController.findCountyTracts',
   '/agency' : 'AgenciesController.find',
-  '/agency/:agency/county/route/:rid' : 'CountyController.findRouteCounties',
-  '/agency/:agency/tract/route/:rid' : 'TractController.findRouteTracts',
+  '/agency/:agency/county/route' : 'CountyController.findRouteCounties',
+  '/agency/:agency/tract/route' : 'TractController.findRouteTracts',
 
 
 

@@ -74,15 +74,20 @@ module.exports =  {
    	 return sql;
     },
     routeCountyQuery : function(agency,rid,geoids){
-      var excludes = '';
+      var excludes = '',where ='';
       if(geoids){
         excludes = 'AND geoid NOT IN (\''+geoids.join("','")+'\')';
       }
+      if(Array.isArray(rid)){
+        where = " where route_short_name in ('"+rid.join("','")+"')";
+      }else{
+        where = "where route_short_name='"+rid+"' ";
+      }
       var sql = "WITH " +
                 "geo AS( "+
-                "SELECT geom FROM \""+agency+"\".routes where route_short_name='"+rid+"' "+
+                "SELECT geom,route_short_name as route FROM \""+agency+"\".routes "+where +
                 ") "+
-                "SELECT ST_AsGeoJSON(the_geom) as geom, geoid,name,aland,awater "+
+                "SELECT ST_AsGeoJSON(the_geom) as geom, geoid,name,aland,awater, geo.route "+
                 "from tl_2013_us_county as ct,geo "+
                 "WHERE ST_INTERSECTS(ct.the_geom,ST_setSRID(geo.geom,4326)) "+excludes;
       console.log(sql);
@@ -90,20 +95,20 @@ module.exports =  {
     },
     routeCountyIdQuery : function(agency,rid){
       var where = '';
-      if(!rid.forEach){
+      if(!Array.isArray(rid)){
         where = "WHERE R.route_short_name='"+rid+"'";
       }else{
         where = "WHERE R.route_short_name in ('"+rid.join("','")+"')";
       }
       var sql = "WITH " +
-                "geo AS( SELECT S.geom FROM \""+agency+"\".routes as R " +
+                "geo AS( SELECT S.geom, R.route_short_name as route FROM \""+agency+"\".routes as R " +
                       	"JOIN \""+agency+"\".trips as T ON T.route_id=R.route_id "+
                       	"JOIN \""+agency+"\".stop_times as ST ON ST.trip_id=T.trip_id "+
                       	"JOIN \""+agency+"\".stops as S ON S.stop_id = ST.stop_id "+
                       	where+ ' '+
-	                       "GROUP BY S.stop_id"+
+	                       "GROUP BY R.route_short_name,S.stop_id"+
                 ") "+
-                "SELECT distinct geoid "+
+                "SELECT distinct geoid, geo.route "+
                 "from tl_2013_us_county as ct,geo "+
                 "WHERE ST_INTERSECTS(ct.the_geom,ST_setSRID(geo.geom,4326))";
       console.log(sql);
@@ -112,6 +117,9 @@ module.exports =  {
     countyTractQuery : function(countyids,geoids){
       var sql = '';
       var states = {};
+      if(!Array.isArray(countyids)){
+        countyids = [countyids];
+      }
       countyids.forEach(function(id){
         var sid = id.substr(0,2);
         states[sid] = states[sid] || [];
@@ -159,7 +167,7 @@ module.exports =  {
       }else if(cid){
         where = "WHERE geoid = '"+cid+"'";
       }
-      var sql = 'SELECT ST_AsGeoJSON(the_geom) as geom,statefp,countyfp,namelsad,aland FROM tl_2013_us_county '+where;
+      var sql = 'SELECT ST_AsGeoJSON(the_geom) as geom,geoid,statefp,countyfp,namelsad,aland FROM tl_2013_us_county '+where;
       console.log(sql);
       return sql;
     }

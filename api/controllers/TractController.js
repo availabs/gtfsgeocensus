@@ -54,9 +54,7 @@
      if(true){
        var geoids;
        var rid = req.param('rid');
-       if(rid.startsWith('[') && rid.endsWith(']')){
-         rid = JSON.parse(rid);
-       }
+
        if(req.body && req.body.forEach){
          geoids = req.body;
        }
@@ -71,6 +69,15 @@
      }
    },
 
+   findCountyTracts : function(req,res){
+     if(true){
+       var cid = req.param('cid');
+       queryCountyTracts(cid,Tract,req,res);
+     }else{
+       res.send({err:'UAUTHORIZED ACCESS'},503);
+     }
+   },
+
    getTracts : function(req,res){
      if(true){
        var tid = req.param('tid');
@@ -80,6 +87,21 @@
      }
    },
  };
+
+ function queryCountyTracts(cid,model,req,res){
+   console.log('queryingCountyTracts');
+    console.time('queryingCountyTracts');
+    model.query(helper.query.countyTractQuery(cid),{},function(err,data){
+      if(err){
+        console.log(err);
+        res.send({err:'Error Retreiving Tract Info'},500);
+      }else{
+        console.timeEnd('queryingCountyTracts');
+        var json = helper.convertToTopo(data.rows);
+        res.send(json);
+      }
+    });
+ }
 
  function queryTracts(tid,model,req,res){
    console.log('querying tracts',tid);
@@ -93,6 +115,7 @@
      }
    });
  }
+
 
  function queryRouteTract(agency,rid,geoids,model,req,res){
    console.log('queryingRouteTract');

@@ -2,6 +2,7 @@ var topojson = require('topojson');
 module.exports =  {
 
   convertToTopo : function(data){
+      try{
   	var geocoll = {type:'FeatureCollection',features:[]};
   	data.forEach(function(geo){
   		var feat = {};
@@ -26,6 +27,9 @@ module.exports =  {
   	// 	json.features.push(toTopo(topology,topology.objects.states.objs));
   	// }
   	return topology;
+	  }catch(e){
+	      throw new Error('Error converting to topojson');
+	  }
   },
   query : {
     stateQuery:function(id){
@@ -170,7 +174,15 @@ module.exports =  {
       var sql = 'SELECT ST_AsGeoJSON(the_geom) as geom,geoid,statefp,countyfp,namelsad,aland FROM tl_2013_us_county '+where;
       console.log(sql);
       return sql;
-    }
+    },
+
+     msaQuery : function(msaid){
+	var where = '';
+	if(msaid)
+	    where =" where geoid='"+msaid+"'"
+	return 'SELECT geoid, ST_AsGeoJSON(wkb_geometry) as geom '+
+	    'FROM tl_2015_us_cbsa ' + where;
+    },
   },
 };
 

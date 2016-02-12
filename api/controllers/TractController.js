@@ -88,6 +88,15 @@
    },
  };
 
+ function respond(res,data){
+     try{
+	 var json = helper.convertToTopo(data.rows);
+	 res.send(json);
+     }catch(e){
+	 return res.send(e,500);
+     }    
+ }
+
  function queryCountyTracts(cid,model,req,res){
    console.log('queryingCountyTracts');
     console.time('queryingCountyTracts');
@@ -97,8 +106,7 @@
         res.send({err:'Error Retreiving Tract Info'},500);
       }else{
         console.timeEnd('queryingCountyTracts');
-        var json = helper.convertToTopo(data.rows);
-        res.send(json);
+	respond(res,data);
       }
     });
  }
@@ -110,8 +118,7 @@
        console.log(err);
        res.send({err:'Error Retrieving Tract Info'},500);
      }else{
-       var json = helper.convertToTopo(data.rows);
-       res.send(json);
+	 respond(res,data);
      }
    });
  }
@@ -136,8 +143,7 @@
            res.send({err:'Error Retrieving Tract Info'},500);
          }else{
           console.timeEnd('countyTracts');
-          var json = helper.convertToTopo(data.rows);
-          res.send(json);
+	     respond(res,data);
          }
        });
      }
@@ -151,8 +157,7 @@
 			 console.log(err);
 			 res.send({err:'Error Retrieving Tract Info'},500);
 		 }else{
-			 var json = helper.convertToTopo(data.rows);
-			 res.send(json);
+		     respond(res,data);
 		 }
 	 });
  }
@@ -166,10 +171,7 @@
 				 console.log(err);
 				 res.send({err:'Error Retrieving Tract Info'},500);
 			 }else{
-				 console.time('conversion');
-				 var json = helper.convertToTopo(data.rows);
-				 console.timeEnd('conversion');
-				 res.send(json);
+			     respond(res,data);
 			 }
 		 });
 	 }

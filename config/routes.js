@@ -37,7 +37,7 @@ module.exports.routes = {
   },
     '/state' : 'StateController.find',
     '/state/county' : 'CountyController.findUSCounties',
-    '/stante/:sid' : 'StateController.findOne',
+    '/state/:sid' : 'StateController.findOne',
     '/state/:sid/county' : 'CountyController.find',
     '/state/:sid/county/:cid' : 'CountyController.findOne',
     '/state/:sid/county/:cid/tract': 'TractController.find',
